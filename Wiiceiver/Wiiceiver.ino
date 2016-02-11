@@ -82,6 +82,96 @@ ElectronicSpeedController ESC;
 Blinker green, red;
 Throttle throttle;
 
+float vPow = 4.7;
+float r1 = 120000;
+float r2 = 27000;
+int led1 = 2;
+int led2 = 3;
+int led3 = 4;
+int led4 = 5;
+int led5 = 12;
+float vMax = 12.3;
+float vMin = 11.3;
+float v2 = (vMax-((vMax/vMin)/4));
+float v3 = (vMax-2*((vMax/vMin)/4));
+float v4 = (vMax-3*((vMax/vMin)/4));
+int count = 0;
+int flash = 0;
+int buzzer = 13;
+
+void voltage() {
+
+  
+  
+   if (count >= 50){
+   float v = (analogRead(0) * vPow) / 1024.0;
+   float vP = v / (r2 / (r1 + r2));
+   
+   Serial.println(vP);
+   
+   if (vP > vMax) 
+   {
+      digitalWrite(led1, HIGH);
+      digitalWrite(led2, HIGH);
+      digitalWrite(led3, HIGH);
+      digitalWrite(led4, HIGH);
+      digitalWrite(led5, HIGH);
+   }
+      if ((vP > v2) && (vP < vMax)) 
+   {
+      digitalWrite(led1, HIGH);
+      digitalWrite(led2, HIGH);
+      digitalWrite(led3, HIGH);
+      digitalWrite(led4, HIGH);
+      digitalWrite(led5, LOW);
+   }
+      if ((vP > v3) && (vP < v2)) 
+   {
+      digitalWrite(led1, HIGH);
+      digitalWrite(led2, HIGH);
+      digitalWrite(led3, HIGH);
+      digitalWrite(led4, LOW);
+      digitalWrite(led5, LOW);
+   }
+      if ((vP > v4) && (vP < v3)) 
+   {
+      digitalWrite(led1, HIGH);
+      digitalWrite(led2, HIGH);
+      digitalWrite(led3, LOW);
+      digitalWrite(led4, LOW);
+      digitalWrite(led5, LOW);
+   }
+      if ((vP > vMin) && (vP < v4)) 
+   {
+      digitalWrite(led1, HIGH);
+      digitalWrite(led2, LOW);
+      digitalWrite(led3, LOW);
+      digitalWrite(led4, LOW);
+      digitalWrite(led5, LOW);
+   }
+      if (vP < vMin) 
+   {
+      if (flash >= 1) {
+        digitalWrite(led1, LOW);
+        digitalWrite(buzzer, LOW);
+        flash =0;
+      } else {
+        digitalWrite(led1, HIGH);
+        digitalWrite(buzzer,HIGH);
+        flash ++;
+      }
+      digitalWrite(led2, LOW);
+      digitalWrite(led3, LOW);
+      digitalWrite(led4, LOW);
+      digitalWrite(led5, LOW);
+      
+      
+   }
+   count = 0;
+ }
+   count ++;
+
+}
 
 /********
  *  WATCHDOG STUFF
@@ -91,7 +181,7 @@ Throttle throttle;
  * http://www.ivoidwarranties.com/2012/02/arduino-mega-optiboot.html
  *
  ********/
- 
+
 /*
  * setup a watchdog timer for the given reset interval
  *
@@ -414,6 +504,23 @@ void setup() {
   green.update(1);
   red.update(1);
   watchdog_setup(WDTO_250MS);
+
+  Serial.print("Maximum Voltage: ");
+  Serial.print((int)(vPow / (r2 / (r1 + r2))));
+  pinMode(led1, OUTPUT);
+  pinMode(led2, OUTPUT);
+  pinMode(led3, OUTPUT);
+  pinMode(led4, OUTPUT);
+  pinMode(led5, OUTPUT);
+  pinMode(buzzer, OUTPUT);
+  Serial.println("Voltage Values:");
+  Serial.println(vMax);
+  Serial.println(v2);
+  Serial.println(v3);
+  Serial.println(v4);
+  Serial.println(vMin);
+  Serial.println("BEGIN");  
+
 } // void setup()
 
 
@@ -466,9 +573,7 @@ void loop() {
 #endif
     delay(delayMS);
   } // if (chuck.isActive())
+  
+  voltage();
+
 }
-
-
-
-
-
